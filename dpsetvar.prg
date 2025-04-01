@@ -13,15 +13,23 @@ PROCE MAIN()
    LOCAL oIni
    LOCAL aFiles:={},I,cFile_dxb:="",cFile_dxbx:="",cExt:=""
    LOCAL cFileCli:="CLIENTE\CLIENTE.TXT"
-
+   LOCAL aCoors:=GetCoors( GetDesktopWindow() )
 
    // 03/10/2023
    // Reemplaza el programa binario c:\dpsgev60\bin\dpsgev60.exe en c:\dpsgev60\dpsgev60.exe
    EJECUTAR("REPLACEBIN") 
+
+   PUBLICO("_MycIp"    ,"")
+   PUBLICO("_MycPass"  ,"")
+   PUBLICO("_MycLoging","")
+   PUBLICO("_MySqlDate","")
+   PUBLICO("_MySqlPort",0 )
    
-   oDp:cUsuario   :="00"
+   oDp:cUsuario   :="000"
    oDp:cUrlRelease:="https://adaptaproerp.com/novedades/"
    oDp:cCodSas    :=STRZERO(0,4)
+
+   oDp:cMySQLVersion:=""
 
    oDp:lConfig    :=.F. // no ha sido ejecutado DPLOADCNF
    oDp:cRecTrib   :="Recaudador Tributario"
@@ -34,6 +42,24 @@ PROCE MAIN()
    oDp:nBtnWidth  :=55
    oDp:nBarnHeight:=60  // Tamaño del Ancho de la Barra de Botones Ventana Principal
    oDp:lMultiple  :=.F. // no Multi-Instancia
+
+   oDp:nBtnBarHeight :=65
+   oDp:nBtnBarWidth  :=50
+
+   oDp:l800  :=(aCoors[3]>800)
+
+   IF !oDp:l800
+     oDp:nBtnBarHeight :=40
+     oDp:nBtnBarWidth  :=45
+   ENDIF
+
+
+
+   oDp:nRadio_find   :=1
+   oDp:oRadio_find   :=NIL
+   oDp:oBtnFindHis   :=NIL // botó de Búsqueda de funcionalidades
+
+
 
    oDp:lMYSQLCHKCONN:=.F. // Revisar Conexión Base de datos
    oDp:lDropAllView :=.F. // No debe remover todas las vista, solo en caso de ser solicitada directamente, su valor será redefinido en DPINI
@@ -54,6 +80,8 @@ PROCE MAIN()
 
    oDp:lCrystalDesign:=.T. // ejecutar Crystal Design
 
+   oDp:aBarSize    :={} // 26/03/2025 barra de botones
+
    oDp:nGris       :=15724527
    oDp:nGris2      :=16774636  
 
@@ -73,10 +101,11 @@ PROCE MAIN()
    oDp:oDPCAMPOS      :=NIL  // Objeto crear asiento en programa DPCAMPOSADD
 
    oDp:cIdConfig      :="" // necesario en DPCONFIG según sucursal de la empresa
+   oDp:cRifErr        :=""
 
-   oDp:RtfcFind    :=SPACE(50)
-   oDp:RtfcRepl    :=SPACE(50)
-   oDp:hDllRtf     :=NIL
+   oDp:RtfcFind       :=SPACE(50)
+   oDp:RtfcRepl       :=SPACE(50)
+   oDp:hDllRtf        :=NIL
 
    oGenRep:=NIL // generador de reportes
 
@@ -117,44 +146,7 @@ PROCE MAIN()
  
    DEFINE FONT oDp:oFontMenu NAME "Tahoma"   SIZE 0, -11 
 
-   /*
-   // Remueve Programas innecesarios DXB o DXBX Según la fecha
-   */
-   IF !ISPCPRG() 
-
-     aFiles:=DIRECTORY("DPXBASE\DPSETVAR.*")
-
-     FOR I=1 TO LEN(aFiles)
-
-       IF cFileExt(aFiles[I,1])=="DXB"
-          cFile_dxb:=DTOS(aFiles[I,3])+aFiles[I,4]
-       ENDIF
-
-       IF cFileExt(aFiles[I,1])=="DXBX"
-          cFile_dxbx:=DTOS(aFiles[I,3])+aFiles[I,4]
-       ENDIF
-
-     NEXT I
-
-     IF (!Empty(cFile_dxbx) .AND. !Empty(cFile_dxb))
-
-      IF cFile_dxbx>cFile_dxb
-         cExt:="DXB"
-      ELSE
-         cExt:="DXBX"
-      ENDIF
-
-      aFiles:=DIRECTORY("DPXBASE\*."+cExt)
-
-      FOR I=1 TO LEN(aFiles)
-         IF cFileExt(aFiles[I,1])==cExt
-            FERASE("DPXBASE\"+aFiles[I,1])
-         ENDIF
-      NEXT I
-
-     ENDIF
-
-   ENDIF
+   oDp:aBARSIZE    :={oDp:nBtnBarWidth,oDp:nBtnBarHeight,.T.,"TOP"}
 
 RETURN .T.
 // EOF
